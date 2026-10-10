@@ -1,0 +1,68 @@
+name: Build Folio
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GODOT_VERSION: 4.6.3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install verified Godot and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot-download" "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable" "$HOME/.local/bin"
+          cd "$RUNNER_TEMP/godot-download"
+          base="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable"
+          editor="Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          templates="Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          curl -fL --retry 3 "$base/SHA512-SUMS.txt" -o SHA512-SUMS.txt
+          curl -fL --retry 3 "$base/$editor" -o "$editor"
+          curl -fL --retry 3 "$base/$templates" -o "$templates"
+          awk -v editor="$editor" -v templates="$templates" '$2 == editor || $2 == templates' SHA512-SUMS.txt > selected-SHA512-SUMS.txt
+          test "$(wc -l < selected-SHA512-SUMS.txt)" -eq 2
+          sha512sum -c selected-SHA512-SUMS.txt
+          unzip -q "$editor"
+          install -m755 "Godot_v${GODOT_VERSION}-stable_linux.x86_64" "$HOME/.local/bin/godot"
+          unzip -j -q "$templates" 'templates/web*' 'templates/android*' -d "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Install Android build tools
+        shell: bash
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platform-tools' 'build-tools;36.0.0' 'platforms;android-36'
+      - name: Import and test
+        run: |
+          godot --headless --path . --editor --import
+          python3 tools/build_content.py --validate
+          godot --headless --path . --script tests/test_systems.gd
+          godot --headless --path . --script tests/test_ui.gd
+      - name: Export Web and Android
+        run: tools/export_game.sh all builds
+      - name: Attach Android test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Folio-Android-debug
+          path: builds/android/Folio-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Attach browser preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: Folio-Web
+          path: builds/web/
+          if-no-files-found: error
+          retention-days: 30

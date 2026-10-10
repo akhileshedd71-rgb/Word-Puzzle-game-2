@@ -1,0 +1,10 @@
+.godot/
+builds/
+*.tmp
+*.log
+*.keystore
+*.jks
+.env
+__pycache__/
+.venv/
+export_credentials.cfg
