@@ -161,7 +161,7 @@ func _button(text_: String, action: Callable, primary: bool = false, height: int
 	button.add_theme_stylebox_override("pressed", _style(colors.accent.darkened(0.12) if primary else colors.line, 8))
 	button.add_theme_stylebox_override("disabled", _style(colors.paper, 8, colors.line, 1))
 	button.add_theme_stylebox_override("focus", _style(Color.TRANSPARENT, 8, colors.coral, 3))
-	button.pressed.connect(action)
+	button.pressed.connect(action, CONNECT_DEFERRED)
 	return button
 
 func _row(parent: Node = null, gap: int = 14) -> HBoxContainer:
@@ -242,7 +242,7 @@ func _navigation(active: String) -> void:
 		b.add_theme_stylebox_override("hover", _style(colors.tint, 8))
 		b.add_theme_stylebox_override("pressed", _style(colors.line, 8))
 		b.add_theme_stylebox_override("focus", _style(Color.TRANSPARENT, 6, colors.accent, 2))
-		b.pressed.connect(item[3])
+		b.pressed.connect(item[3], CONNECT_DEFERRED)
 		nav.add_child(b)
 		var v = VBoxContainer.new()
 		v.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -450,7 +450,7 @@ func _render_puzzle(message: String = "") -> void:
 	wheel=Wheel.new()
 	wheel.custom_minimum_size=Vector2(0,345)
 	wheel.setup(puzzle.letters,SANS,colors)
-	wheel.word_submitted.connect(_submit_word)
+	wheel.word_submitted.connect(_submit_word, CONNECT_DEFERRED)
 	wheel.selection_changed.connect(func(word):
 		if is_instance_valid(entry):
 			entry.text=word if not word.is_empty() else "· · ·"

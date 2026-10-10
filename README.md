@@ -14,6 +14,10 @@ This is a **debug-signed playtest build**, not a store release. It requests no A
 
 Prefer the editor? Download this repository, import **`project.godot`** into **Godot 4.6.3 standard edition**, then press **F5**. No plugins, C#, npm packages, or dictionary API keys are needed. Desktop mouse and keyboard are supported.
 
+| Home | Find the words | A page complete |
+| --- | --- | --- |
+| ![Folio home](docs/screenshots/home.png) | ![Letter-wheel play](docs/screenshots/play.png) | ![Puzzle completion](docs/screenshots/complete.png) |
+
 ## What's playable
 
 - **5,200 distinct campaign letter banks**, sequential progression, five difficulty bands, relief puzzles, and learning-focused challenge pages. The first 20 puzzles are hand-selected; the rest use a reproducible generator.
